@@ -9,10 +9,10 @@ export class Canvas {
     this.canvas.width = width;
     this.canvas.height = height;
     this.canvas.tabIndex = 1;
-    this.canvas.style = "border:1px solid #000000; cursor: none"
+    this.canvas.style = "border:1px solid #000000; cursor: none";
     document.getElementById(elementId).appendChild(this.canvas);
 
-    if (typeof id === 'string') {
+    if (typeof id === "string") {
       this.canvas.id = id;
       this.id = id;
     }
@@ -43,7 +43,7 @@ export function getRandomColor() {
 
 /**
  * Load and return Image
- * @param {string} src 
+ * @param {string} src
  */
 export function loadImage(src) {
   let image = new Image();
@@ -51,24 +51,67 @@ export function loadImage(src) {
   return image;
 }
 
-export function drawSprite(context, image, rect_ImageSource, rect_drawImage){
-  if(image){
-      context.drawImage(image,  
-          rect_ImageSource.vec.x, rect_ImageSource.vec.y, rect_ImageSource.width, rect_ImageSource.height, //src coords 
-          rect_drawImage.vec.x, rect_drawImage.vec.y, rect_drawImage.width, rect_drawImage.height, //dst coords 
-      );
+export function drawSprite(context, image, rect_ImageSource, rect_drawImage) {
+  if (image) {
+    context.drawImage(
+      image,
+      rect_ImageSource.vec.x,
+      rect_ImageSource.vec.y,
+      rect_ImageSource.width,
+      rect_ImageSource.height, //src coords
+      rect_drawImage.vec.x,
+      rect_drawImage.vec.y,
+      rect_drawImage.width,
+      rect_drawImage.height //dst coords
+    );
   }
 }
 
+//--- Vector
+
 /**
  * Create a Vector of two integer
+ * All things vector are calculated to the origin.
  */
 export class Vector2i {
   constructor(x, y) {
     this.x = x;
     this.y = y;
   }
+
+  getMagnitude() {
+    return Math.sqrt(this.x*this.x + this.y*this.y);
+  }
+
+  getMagnitudeSquare(){
+    return this.x*this.x + this.y*this.y;
+  }
+
+  /**Turn a non-zero vector into a vector of unit length*/
+  normalize(){
+    
+  }
+
+  getSlope() {
+    return this.y / this.x;
+  }
+
+  getDirection(inDegrees) {
+    if (inDegrees) {
+      return (Math.atan(this.y / this.x) * 180) / Math.PI;
+    }
+    return Math.atan(this.y / this.x);
+  }
+
+  invert(){
+    this.x = -this.x;
+    this.y = -this.y;
+  }
 }
+
+//--- 3D vector
+
+//--- Points
 
 /**
  * Create A point of two integer positions x and y.
@@ -94,11 +137,11 @@ export class Point {
 }
 
 /**
- * 
- * @param {context} context 
- * @param {Array} points 
- * @param {string} color 
- * @param {Number} thickness 
+ *
+ * @param {context} context
+ * @param {Array} points
+ * @param {string} color
+ * @param {Number} thickness
  */
 Point.joinPointArray = function (context, points, color, thickness) {
   if (typeof color === "string") {
@@ -121,6 +164,7 @@ Point.joinPointArray = function (context, points, color, thickness) {
   }
 };
 
+//--- Lines
 export class Line {
   constructor(point1, point2) {
     this.point1 = point1;
@@ -140,6 +184,25 @@ export class Line {
     context.moveTo(this.point1.x, this.point1.y);
     context.lineTo(this.point2.x, this.point2.y);
     context.stroke();
+  }
+
+  getSlope() {
+    return (this.point1.y - this.point2.y) / (this.point1.x - this.point2.x);
+  }
+
+  getLength() {
+    return Math.sqrt(
+      Math.pow(this.point1.x - this.point2.x, 2) +
+        Math.pow(this.point1.y - this.point2.y, 2)
+    );
+  }
+
+  getAngleWithXAxis(inDegrees) {
+    if (inDegrees) {
+      return (Math.atan(this.getSlope()) * 180) / Math.PI;
+    } else {
+      return Math.atan(this.getSlope());
+    }
   }
 }
 
@@ -167,46 +230,86 @@ Line.getIntersectionPoint = function (line1, line2) {
       ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) /
       denominator;
     return intersectionPoint;
-  } else return;
+  } else return false;
 };
 
+Line.getAngleBetweenLines = function (line1, line2, inDegrees) {
+  let m1 = line1.getSlope();
+  let m2 = line2.getSlope();
+
+  if (inDegrees) {
+    return (Math.atan((m1 - m2) / (1 + m1 * m2)) * 180) / Math.PI;
+  }
+  return Math.atan((m1 - m2) / (1 + m1 * m2));
+};
+
+//--- Rectangle
 export class Rectangle {
   constructor(vec1, vec2) {
     this.vec = vec1;
     this.width = vec2.x;
     this.height = vec2.y;
-    this.vec_center = new Vector2i((vec1.x + vec2.x + vec1.x)/2, (vec1.y + vec2.y + vec1.y)/2);
+    this.vec_center = new Vector2i(
+      (vec1.x + vec2.x + vec1.x) / 2,
+      (vec1.y + vec2.y + vec1.y) / 2
+    );
+    this.color = "black";
   }
 
   draw(context, color) {
     if (typeof color === "string") {
       context.fillStyle = color;
     } else {
-      context.fillStyle = "black";
+      context.fillStyle = this.color;
     }
 
     context.fillRect(this.vec.x, this.vec.y, this.width, this.height);
   }
 
-  drawSprite(context, image, vec_startLocation, img_width, img_height){
-    if(image){
-      context.drawImage(image,  
-          vec_startLocation.x, vec_startLocation.y, img_width, img_height, //src coords 
-          this.vec.x, this.vec.y, this.width, this.height, //dst coords 
+  drawSprite(context, image, vec_startLocation, img_width, img_height) {
+    if (image) {
+      context.drawImage(
+        image,
+        vec_startLocation.x,
+        vec_startLocation.y,
+        img_width,
+        img_height, //src coords
+        this.vec.x,
+        this.vec.y,
+        this.width,
+        this.height //dst coords
       );
     }
   }
 
-  rotateSpriteAndDraw(context, image,  angle, vec_startLocation, img_width, img_height){
-    if(image){
+  rotateSpriteAndDraw(
+    context,
+    image,
+    angle,
+    vec_startLocation,
+    img_width,
+    img_height
+  ) {
+    if (image) {
       context.save();
-      context.translate(this.vec.x + this.width / 2, this.vec.y + this.height / 2);
-      context.rotate(angle) //* Math.PI / 180);
+      context.translate(
+        this.vec.x + this.width / 2,
+        this.vec.y + this.height / 2
+      );
+      context.rotate(angle); //* Math.PI / 180);
       //We dont need to have the x and y  position of the image as we have already
       //translated to that location and draw the image directly.
-      context.drawImage( image, 
-        vec_startLocation.x, vec_startLocation.y, img_width, img_height,
-        -this.width / 2, -this.height / 2, this.width, this.height);
+      context.drawImage(
+        image,
+        vec_startLocation.x,
+        vec_startLocation.y,
+        img_width,
+        img_height,
+        -this.width / 2,
+        -this.height / 2,
+        this.width,
+        this.height
+      );
       context.restore();
     }
   }
