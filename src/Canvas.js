@@ -80,16 +80,21 @@ export class Vector2i {
   }
 
   getMagnitude() {
-    return Math.sqrt(this.x*this.x + this.y*this.y);
+    return Math.sqrt(this.x * this.x + this.y * this.y);
   }
 
-  getMagnitudeSquare(){
-    return this.x*this.x + this.y*this.y;
+  getMagnitudeSquare() {
+    return this.x * this.x + this.y * this.y;
   }
 
   /**Turn a non-zero vector into a vector of unit length*/
-  normalize(){
-    
+  normalize() {
+    let length = this.getMagnitude();
+
+    if (length > 0) {
+      this.x = this.x / length;
+      this.y = this.y / length;
+    }
   }
 
   getSlope() {
@@ -103,13 +108,85 @@ export class Vector2i {
     return Math.atan(this.y / this.x);
   }
 
-  invert(){
+  invert() {
     this.x = -this.x;
     this.y = -this.y;
   }
+
+  /**Multiply a scalar value with this vector.
+   * The parameter to pass is a scalar value not a vector. */
+  multiplyScalar(value) {
+    this.x *= value;
+    this.y *= value;
+  }
+
+  getMultiplicationScalarVector(value) {
+    return new Vector2i(this.x * value, this.y * value);
+  }
+
+  /**Add another vector to this vector */
+  addVector(vector) {
+    this.x += vector.x;
+    this.y += vector.y;
+  }
+
+  getAdditionVector(vector) {
+    return new Vector2i(this.x + vector.x, this.y + vector.y);
+  }
+
+  /**Subtract given vector from this vector */
+  subtractVector(vector) {
+    this.x -= vector.x;
+    this.y -= vector.y;
+  }
+
+  getSubtractionVector(vector) {
+    return new Vector2i(this.x - vector.x, this.y - vector.y);
+  }
+
+  /**Add scaled vector to this vector */
+  addScaledVector(vector, scale) {
+    this.x += vector.x * scale;
+    this.y += vector.y * scale;
+  }
+
+  /**Component Product : Similar to adding and subtracting. Has no direct geometric significance. */
+  componentProduct(vector) {
+    this.x *= vector.x;
+    this.y *= vector.y;
+  }
+
+  getComponentProductVector(vector) {
+    return new Vector2i(this.x * vector.x, this.y * vector.y);
+  }
+
+  /**Scalar Product of given vector with this vector. */
+  getScalarProduct(vector) {                    
+    return this.x*vector.x + this.y*vector.y;
+  }
+  //The scalar value returned => 
+  //a.b = |a||b|cos(theta) =>
+  //theta represents the angle between the two given vectors
+   
 }
 
-//--- 3D vector
+/**
+ * Add Velocity Vector and LastPosition Vector to the objects that can be moved.
+ * @param {Rectanle || Point} object 
+ * @param {number} initVecolicty 
+ */
+export function setMovable(object, initVecolicty){
+  object.isMovable = true;
+  object.velocity = new Vector2i(0, 0);
+  object.lastPosition = new Vector2i(object.vec.x, object.vec.y);
+}
+
+export function updateLastPostion(object){
+  if(object.isMovable){
+    object.lastPosition.x = object.vec.x;
+    object.lastPosition.y = object.vec.y;
+  }
+}
 
 //--- Points
 
