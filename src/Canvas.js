@@ -173,9 +173,8 @@ export class Vector2i {
 /**
  * Add Velocity Vector and LastPosition Vector to the objects that can be moved.
  * @param {Rectanle || Point} object 
- * @param {number} initVecolicty 
  */
-export function setMovable(object, initVecolicty){
+export function setMovable(object){
   object.isMovable = true;
   object.velocity = new Vector2i(0, 0);
   object.lastPosition = new Vector2i(object.vec.x, object.vec.y);
@@ -391,3 +390,55 @@ export class Rectangle {
     }
   }
 }
+
+
+//-- Tile Map Utility functions
+/**
+ * Precalculate the origin coordinate for each tile in a tile map and store in an array.
+ * @param {number} rows 
+ * @param {number} columns 
+ * @param {number} tileSize 
+ */
+export function generateTileArray(rows, columns, tileSize){
+  let tileArray = [];
+
+  for(let row = 0; rows > row; row++){
+    for(let col = 0; columns > col; col++){
+      tileArray.push(new Vector2i(col*tileSize, row*tileSize));
+    }
+  }
+
+  return tileArray;
+}
+
+/**
+ * This gives the cell number calcuated going from left to right and returning to leftmost column for next row.
+ * row and column are not origin points of the rectangle representing the tile but actual row and column number.
+ * @param {number} row 
+ * @param {number} column 
+ * @param {number} totalColumns 
+ */
+export function getCellNumber(row, column, totalColumns){
+  return (row*column) + column - totalColumns;
+}
+
+export let drawThisTile = function (
+  context,
+  tilesImage,
+  imageOrigin,
+  tileSizeOfImage,
+  drawOrigin,
+  drawTileSize
+) {
+  context.drawImage(
+    tilesImage,
+    imageOrigin.x,
+    imageOrigin.y,
+    tileSizeOfImage,
+    tileSizeOfImage,
+    drawOrigin.x,
+    drawOrigin.y,
+    drawTileSize,
+    drawTileSize
+  );
+};

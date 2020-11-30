@@ -64,6 +64,7 @@ export function checkAndResolveCollision(rect1, rect2) {
       rect1.vec.x = rect2.vec.x + rect2.width + 1;
     }
   }
+  
   //when rect2 is static and does not have a veclocity of its own
   else {
     //rect1 collides with the top of rect2

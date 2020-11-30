@@ -1,44 +1,73 @@
+import { TILES_STAGE_1, STAGE_1_NUMBEROFCOLUMNS } from "./Maps/Map_1.js";
 import {
   Canvas,
   Rectangle,
   Vector2i,
-  loadImage,
-  Point,
   setMovable,
   updateLastPostion,
+  loadImage,
+  generateTileArray,
+  drawThisTile,
 } from "./src/Canvas.js";
-import { aabb, checkAndResolveCollision } from "./src/collision.js";
+import { checkAndResolveCollision } from "./src/collision.js";
 import { add_events, KeyPressed } from "./src/input.js";
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
-let canvas = new Canvas(CANVAS_WIDTH, CANVAS_HEIGHT, "Canvas");
+let mapCanvas = new Canvas(CANVAS_WIDTH, CANVAS_HEIGHT, "Canvas", "mapCanvas");
+mapCanvas.canvas.style = "background-color: lightgrey;";
+let collisionCanvas = new Canvas(
+  CANVAS_WIDTH,
+  CANVAS_HEIGHT,
+  "Canvas",
+  "collisionCanvas"
+);
+add_events(collisionCanvas.canvas);
 
-add_events(canvas.canvas);
-
-//Two Rectangle
-let rect1 = new Rectangle(new Vector2i(10, 10), new Vector2i(30, 50));
-let rect2 = new Rectangle(new Vector2i(100, 100), new Vector2i(70, 50));
-let rect3 = new Rectangle(new Vector2i(300, 400), new Vector2i(30, 40));
-let rect4 = new Rectangle(new Vector2i(300, 200), new Vector2i(30, 70));
-let rect5 = new Rectangle(new Vector2i(340, 200), new Vector2i(30, 70));
-
-let defaultPlayerMovementSpeed = new Vector2i(3, 3);
+//Player Character
+let rect1 = new Rectangle(new Vector2i(10, 10), new Vector2i(30, 30));
 let playerMovementSpeed = new Vector2i(3, 3);
-
 setMovable(rect1);
-setMovable(rect2);
-setMovable(rect5);
 
-let moveRight = true;
-let moveDown = true;
+//Load Tile Map Image
+//Make sure that the image is actually loaded before you use it.
+//We can check if the image is loaded by using :
+//imageVariableName.onload = function (e) { // Do what u want to do after image loads/is Ready for use }
+let tileMapSheet = loadImage("./res/tilemap.png");
+let istileMapSheetLoaded = false;
+tileMapSheet.onload = function (e) {
+  istileMapSheetLoaded = true;
+  drawMap();
+};
+const TILESIZEINSOURCEIMAGE = 16;
+let imageTileArray = generateTileArray(18, 27, TILESIZEINSOURCEIMAGE);
+
+//load and paint map
+const MAPTILESIZE = 25;
+let mapArray = TILES_STAGE_1.split("-");
+let mapCoordinateArray = generateTileArray(
+  mapArray.length / STAGE_1_NUMBEROFCOLUMNS,
+  STAGE_1_NUMBEROFCOLUMNS,
+  MAPTILESIZE
+);
+
+let drawMap = function () {
+  for (let i = 0; i < mapArray.length; i++) {
+    drawThisTile(
+      mapCanvas.ctx,
+      tileMapSheet,
+      imageTileArray[mapArray[i]],
+      TILESIZEINSOURCEIMAGE,
+      mapCoordinateArray[i],
+      MAPTILESIZE
+    );
+  }
+};
 
 //Update cordinates
 let update = function (playerMovementSpeed) {
-
   //Update lastPostion of rectangles before assigning new positions
   updateLastPostion(rect1);
-  updateLastPostion(rect2);
 
   //Rectangle 1 or player Rectangle
   if (KeyPressed.A) {
@@ -53,72 +82,65 @@ let update = function (playerMovementSpeed) {
   if (KeyPressed.S) {
     rect1.vec.y += playerMovementSpeed.y;
   }
-
-  //Rectange 2
-  if (rect2.vec.x < CANVAS_WIDTH && moveRight) {
-    rect2.vec.x += 3;
-  }else{
-    moveRight = false;
-    rect2.vec.x -= 13;
-    if(rect2.vec.x < 0) moveRight = true;
-  }
-
-  //Rectangle 5
-  if(rect5.vec.y < 450 && moveDown){
-    rect5.vec.y += 3;
-  }else{
-    moveDown = false;
-    rect5.vec.y -= 5;
-    if(rect5.vec.y < 150) moveDown = true;
-  }
 };
 
-//Only check if the object is colliding but not resolve the collision
-let collisionCheck = function () {
+//Collision Array
+let collisionObjectsArray = [];
+let wallArray = [];
 
-  let isCollision = aabb(rect1, rect4);
-  let isCollision2 = aabb(rect1, rect5);
-  
-  rect1.color = "magenta";
+wallArray.push(new Rectangle(new Vector2i(0, 0), new Vector2i(75, 5)));
+wallArray.push(new Rectangle(new Vector2i(0, 70), new Vector2i(75, 5)));
+wallArray.push(new Rectangle(new Vector2i(0, 0), new Vector2i(5, 75)));
+wallArray.push(new Rectangle(new Vector2i(70, 0), new Vector2i(5, 75)));
 
-  if (isCollision) {
-    rect1.color = "red";
-  }
+//Test --------
+wallArray.forEach((rect) => {
+  rect.draw(mapCanvas.ctx, "red");
+});
 
-  if(isCollision2){
-    rect1.color = "orange";  
-  }
-  
+//Check Collision
+let collisionCheck = function () {};
+
+//Check Collision And Resolve
+let collisionCheckAndResolution = function () {
+  wallArray.forEach(element => {
+    checkAndResolveCollision(rect1, element);
+  });
 };
 
 //DrawFunction
 let draw = function () {
-  rect1.draw(canvas.ctx);
-  rect2.draw(canvas.ctx);
-  rect3.draw(canvas.ctx);
-  rect4.draw(canvas.ctx);
-  rect5.draw(canvas.ctx);
+  rect1.drawSprite(
+    collisionCanvas.ctx,
+    tileMapSheet,
+    new Vector2i(384, 0),
+    16,
+    16
+  );
 };
 
 //GameLoop Start
-const FPS = 60;
+const FPS = 60; //Max FPS
 let rendering = true;
 drawAtXFps(FPS);
 
 function drawAtXFps(FPS) {
   let timestart = Date.now();
 
-  canvas.ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  //Clear Screen Each Frame
+  collisionCanvas.ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  // collisionCheck();
+  //Update and Draw
   update(playerMovementSpeed);
   collisionCheck();
-  checkAndResolveCollision(rect1, rect2);
-  checkAndResolveCollision(rect1, rect3);
+  collisionCheckAndResolution();
   draw();
 
+  //Frame Control
   let timeend = Date.now();
   let sleepTime = (1000 - timeend + timestart) / FPS;
+
+  if (sleepTime < 0) sleepTime = 0;
 
   if (rendering === true) {
     setTimeout(() => {
