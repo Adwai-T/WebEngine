@@ -422,6 +422,29 @@ export function getCellNumber(row, column, totalColumns){
   return (row*column) + column - totalColumns;
 }
 
+/**
+ * Gives Row Number count starting from 1
+ * @param {number} cellNumber 
+ * @param {number} totalColumns 
+ */
+export function getRow(cellNumber, totalColumns){
+  let row =  cellNumber/totalColumns;
+  let deltarow = row - Math.floor(row);
+  if(deltarow !== 0){
+    row++;
+  }
+  return Math.floor(row);
+}
+
+/**
+ * Gives Column Number count starting from 1
+ * @param {number} cellNumber 
+ * @param {number} totalColumns 
+ */
+export function getColumn(cellNumber, totalColumns){
+  return cellNumber % totalColumns;
+}
+
 export let drawThisTile = function (
   context,
   tilesImage,

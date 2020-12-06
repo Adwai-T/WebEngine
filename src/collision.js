@@ -1,4 +1,4 @@
-import { Vector2i } from "./Canvas.js";
+import { Vector2i, getColumn, getRow, Rectangle } from "./Canvas.js";
 
 export function aabb(rect1, rect2) {
   if (
@@ -95,5 +95,76 @@ export function checkAndResolveCollision(rect1, rect2) {
     ) {
       rect1.vec.x = rect2.vec.x + rect2.width + 1;
     }
+  }
+}
+
+//
+//Parse Collision Rectangles
+export let parseCollisionRectangles = function (collisionTilesArray, MAPTILESIZE, COLCOLU, COLROW) {
+
+  let colArr = [...collisionTilesArray];
+  let colRectArr = [];
+
+  for(let i = 0; i < colArr.length; i++){
+
+    if(colArr[i] === 408){
+      let cellNumber = i+1;
+      let x = (getColumn(cellNumber, COLCOLU)-1) * MAPTILESIZE;
+      let y = (getRow(cellNumber, COLCOLU)-1) * MAPTILESIZE;
+      let rect = new Rectangle(new Vector2i(x, y), new Vector2i(MAPTILESIZE, MAPTILESIZE));
+      colArr[i] = 0;
+
+      let count = 0;
+      let maxCount = COLCOLU - getColumn(cellNumber+1, COLCOLU);
+
+      //Get max width for this rectangle
+      while(count <= maxCount){
+        let currentCellNumber = cellNumber + 1 + count;
+        if(colArr[currentCellNumber - 1] === 408){
+          count++; 
+          colArr[currentCellNumber - 1] = 0;
+        }else{
+          break;
+        }
+      }
+      rect.width = (count+1) * MAPTILESIZE
+
+      //Get max height for this rectangle
+      let rowCount= 1;
+      //As we have already checked for the row of current cell we check for the next row from here on.
+      let maxRowCount = COLROW - getRow(cellNumber+COLCOLU, COLCOLU) + 1;
+      //countRowTill represents all the cells below our first fromed rectangle to see if there is another row that can be added
+      //to our existing rectangle
+      let maxColumnNumberCount = 1 + count;
+      while(rowCount <= maxRowCount){
+        let currentRowStartCellNumber = cellNumber + COLCOLU * rowCount;
+        let colCount = 0;
+        while(colCount < maxColumnNumberCount){
+          if(colArr[currentRowStartCellNumber - 1 + colCount] === 408){
+            colCount++;   
+          }else{
+            break;
+          }
+        }
+        if(colCount === maxColumnNumberCount){
+          replaceArrFromTo(colArr, 0, currentRowStartCellNumber-1, maxColumnNumberCount + currentRowStartCellNumber-1);
+          rowCount++
+        }else{
+          break;
+        }
+      }
+
+      rect.height = rowCount * MAPTILESIZE;
+
+      colRectArr.push(rect);
+    }
+  }
+  return colRectArr;
+}
+
+let replaceArrFromTo = function (arr, changeTo, startIndex, endIndex){
+  for(let i = startIndex; i < endIndex; i++){
+    arr[i]
+    arr[i] = changeTo;
   }
 }

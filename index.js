@@ -1,4 +1,4 @@
-import { TILES_STAGE_1, STAGE_1_NUMBEROFCOLUMNS } from "./Maps/Map_1.js";
+import { TILES_STAGE_1, STAGE_1_NUMBEROFCOLUMNS, CollisionArray } from "./Maps/Map_1.js";
 import {
   Canvas,
   Rectangle,
@@ -8,8 +8,12 @@ import {
   loadImage,
   generateTileArray,
   drawThisTile,
+  getRow,
+  getColumn,
+  getCellNumber,
+  getRandomColor,
 } from "./src/Canvas.js";
-import { checkAndResolveCollision } from "./src/collision.js";
+import { checkAndResolveCollision, parseCollisionRectangles } from "./src/collision.js";
 import { add_events, KeyPressed } from "./src/input.js";
 
 const CANVAS_WIDTH = 800;
@@ -44,7 +48,7 @@ let imageTileArray = generateTileArray(18, 27, TILESIZEINSOURCEIMAGE);
 
 //load and paint map
 const MAPTILESIZE = 25;
-let mapArray = TILES_STAGE_1.split("-");
+let mapArray = TILES_STAGE_1;
 let mapCoordinateArray = generateTileArray(
   mapArray.length / STAGE_1_NUMBEROFCOLUMNS,
   STAGE_1_NUMBEROFCOLUMNS,
@@ -53,14 +57,21 @@ let mapCoordinateArray = generateTileArray(
 
 let drawMap = function () {
   for (let i = 0; i < mapArray.length; i++) {
-    drawThisTile(
-      mapCanvas.ctx,
-      tileMapSheet,
-      imageTileArray[mapArray[i]],
-      TILESIZEINSOURCEIMAGE,
-      mapCoordinateArray[i],
-      MAPTILESIZE
-    );
+
+    if(CollisionArray[i] === 0) {
+      
+    }else {      
+      drawThisTile(
+        mapCanvas.ctx,
+        tileMapSheet,
+        // imageTileArray[mapArray[i]-1],
+        imageTileArray[CollisionArray[i]],
+        TILESIZEINSOURCEIMAGE,
+        mapCoordinateArray[i],
+        MAPTILESIZE
+      );
+    }
+
   }
 };
 
@@ -84,6 +95,20 @@ let update = function (playerMovementSpeed) {
   }
 };
 
+//Collision Tile Array Dimensions
+const COLROW = 24;
+const COLCOLU = 32;
+const COLNUMBER = 408;
+
+
+
+let collisionRectArray = parseCollisionRectangles(CollisionArray, MAPTILESIZE, COLCOLU, COLROW);
+
+collisionRectArray.forEach(rect => {
+  rect.color = getRandomColor();
+  rect.draw(mapCanvas.ctx);
+})
+
 //Collision Array
 let collisionObjectsArray = [];
 let wallArray = [];
@@ -94,9 +119,9 @@ wallArray.push(new Rectangle(new Vector2i(0, 0), new Vector2i(5, 75)));
 wallArray.push(new Rectangle(new Vector2i(70, 0), new Vector2i(5, 75)));
 
 //Test --------
-wallArray.forEach((rect) => {
-  rect.draw(mapCanvas.ctx, "red");
-});
+// wallArray.forEach((rect) => {
+//   rect.draw(mapCanvas.ctx, "red");
+// });
 
 //Check Collision
 let collisionCheck = function () {};
@@ -110,13 +135,13 @@ let collisionCheckAndResolution = function () {
 
 //DrawFunction
 let draw = function () {
-  rect1.drawSprite(
-    collisionCanvas.ctx,
-    tileMapSheet,
-    new Vector2i(384, 0),
-    16,
-    16
-  );
+  // rect1.drawSprite(
+  //   collisionCanvas.ctx,
+  //   tileMapSheet,
+  //   new Vector2i(384, 0),
+  //   16,
+  //   16
+  // );
 };
 
 //GameLoop Start
