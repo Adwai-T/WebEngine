@@ -1,4 +1,4 @@
-import { Vector2i, getColumn, getRow, Rectangle } from "./Canvas.js";
+import { Vector2i, Rectangle, Tiles } from "./Canvas.js";
 
 export function aabb(rect1, rect2) {
   if (
@@ -30,11 +30,14 @@ export function aabb(rect1, rect2) {
  * @param {Rectangle} rect1
  * @param {Rectangle} rect2
  */
-export function checkAndResolveCollision(rect1, rect2) {
+export function checkAndResolveCollision(rect1, rect2, rect1IsMovable, rect2IsMovable) {
   if (!aabb(rect1, rect2)) return;
 
-  if (rect2.isMovable) {
+  if (rect2IsMovable) {
     //rect1 collides with the top of rect2
+
+    console.log("Movable second rect detected");
+
     if (
       rect1.vec.y + rect1.height >= rect2.vec.y &&
       rect1.lastPosition.y + rect1.height <= rect2.lastPosition.y
@@ -98,11 +101,11 @@ export function checkAndResolveCollision(rect1, rect2) {
 }
 
 /**
- * Generates array of rectangles what would be used to check collision from the array that has cells represented
+ * Generates array of rectangles that would be used to check collision from the array that has cells represented
  * by a number.
  * This will reduce the number of collision cells that need to be checked individually and from larger rectanges
  * combining these cells.
- * 
+ *
  * @param {array} collisionTilesArray Collision Tile
  * @param {number} MAPTILESIZE Size each tile is to be drawn
  * @param {number} COLCOLU Max tile in each column
@@ -122,18 +125,17 @@ export let parseCollisionRectangles = function (
   for (let i = 0; i < colArr.length; i++) {
     if (colArr[i] === TILENUMBER) {
       let cellNumber = i + 1;
-      let x = (getColumn(cellNumber, COLCOLU) - 1) * MAPTILESIZE;
-      let y = (getRow(cellNumber, COLCOLU) - 1) * MAPTILESIZE;
+      let x = (Tiles.getColumn(cellNumber, COLCOLU) - 1) * MAPTILESIZE;
+      let y = (Tiles.getRow(cellNumber, COLCOLU) - 1) * MAPTILESIZE;
       let rect = new Rectangle(
         new Vector2i(x, y),
         new Vector2i(MAPTILESIZE, MAPTILESIZE)
       );
       colArr[i] = 0;
 
-      let count = 0;
-      let maxCount = COLCOLU - getColumn(cellNumber + 1, COLCOLU);
-
       //Get max width for this rectangle
+      let count = 0;
+      let maxCount = COLCOLU - Tiles.getColumn(cellNumber + 1, COLCOLU);
       while (count <= maxCount) {
         let currentCellNumber = cellNumber + 1 + count;
         if (colArr[currentCellNumber - 1] === TILENUMBER) {
@@ -148,7 +150,8 @@ export let parseCollisionRectangles = function (
       //Get max height for this rectangle
       let rowCount = 1;
       //As we have already checked for the row of current cell we check for the next row from here on.
-      let maxRowCount = COLROW - getRow(cellNumber + COLCOLU, COLCOLU) + 1;
+      let maxRowCount =
+        COLROW - Tiles.getRow(cellNumber + COLCOLU, COLCOLU) + 1;
       //countRowTill represents all the cells below our first fromed rectangle to see if there is another row that can be added
       //to our existing rectangle
       let maxColumnNumberCount = 1 + count;
@@ -180,12 +183,13 @@ export let parseCollisionRectangles = function (
       colRectArr.push(rect);
     }
   }
+
+  console.log(colArr);
   return colRectArr;
 };
 
 let replaceArrFromTo = function (arr, changeTo, startIndex, endIndex) {
   for (let i = startIndex; i < endIndex; i++) {
-    arr[i];
     arr[i] = changeTo;
   }
 };

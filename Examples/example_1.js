@@ -7,6 +7,11 @@ Has a simple game loop that draws frames at given frames/sec.
 Does not have any collision detection, but the sprite is restriced in the canvas area.
 */
 
+/*
+This example uses sleep but, using requestAnimationFrames is much better.
+It gives a smoother framerate monitor refresh rate.
+*/
+
 import {
     Canvas,
     Rectangle,

@@ -113,8 +113,10 @@ export class Vector2i {
     this.y = -this.y;
   }
 
-  /**Multiply a scalar value with this vector.
-   * The parameter to pass is a scalar value not a vector. */
+  /**
+   * Multiply a scalar value with this vector.
+   * The parameter to pass is a scalar value not a vector.
+   *  */
   multiplyScalar(value) {
     this.x *= value;
     this.y *= value;
@@ -213,7 +215,7 @@ export class Point {
 }
 
 /**
- *
+ * Join points in an array, sequenced according to index of the points.
  * @param {context} context
  * @param {Array} points
  * @param {string} color
@@ -282,6 +284,11 @@ export class Line {
   }
 }
 
+/**
+ * Get the point of intersection between two lines.
+ * @param {Line} line1 
+ * @param {Line} line2 
+ */
 Line.getIntersectionPoint = function (line1, line2) {
   const x1 = line1.point1.x;
   const y1 = line1.point1.y;
@@ -309,6 +316,12 @@ Line.getIntersectionPoint = function (line1, line2) {
   } else return false;
 };
 
+/**
+ * Get the angle between two given lines.
+ * @param {Line} line1 
+ * @param {Line} line2 
+ * @param {boolean} inDegrees 
+ */
 Line.getAngleBetweenLines = function (line1, line2, inDegrees) {
   let m1 = line1.getSlope();
   let m2 = line2.getSlope();
@@ -393,13 +406,15 @@ export class Rectangle {
 
 
 //-- Tile Map Utility functions
+export class Tiles{}
+
 /**
  * Precalculate the origin coordinate for each tile in a tile map and store in an array.
  * @param {number} rows 
  * @param {number} columns 
  * @param {number} tileSize 
  */
-export function generateTileArray(rows, columns, tileSize){
+Tiles.generateTileArray = function (rows, columns, tileSize){
   let tileArray = [];
 
   for(let row = 0; rows > row; row++){
@@ -418,7 +433,7 @@ export function generateTileArray(rows, columns, tileSize){
  * @param {number} column 
  * @param {number} totalColumns 
  */
-export function getCellNumber(row, column, totalColumns){
+Tiles.getCellNumber = function (row, column, totalColumns){
   return (row*column) + column - totalColumns;
 }
 
@@ -427,7 +442,7 @@ export function getCellNumber(row, column, totalColumns){
  * @param {number} cellNumber 
  * @param {number} totalColumns 
  */
-export function getRow(cellNumber, totalColumns){
+Tiles.getRow = function (cellNumber, totalColumns){
   let row =  cellNumber/totalColumns;
   let deltarow = row - Math.floor(row);
   if(deltarow !== 0){
@@ -441,11 +456,27 @@ export function getRow(cellNumber, totalColumns){
  * @param {number} cellNumber 
  * @param {number} totalColumns 
  */
-export function getColumn(cellNumber, totalColumns){
-  return cellNumber % totalColumns;
+Tiles.getColumn = function (cellNumber, totalColumns){
+
+  let colNumber = cellNumber % totalColumns;
+
+  if(colNumber === 0) {
+    return totalColumns;
+  }
+  else return colNumber;
+  
 }
 
-export let drawThisTile = function (
+/**
+ * Draw a single tile at from the Tile image to the screen.
+ * @param {Canvas.context} context 
+ * @param {image} tilesImage 
+ * @param {Vector2i} imageOrigin UpperRight corner of selected tile
+ * @param {number} tileSizeOfImage Original Tile size in image
+ * @param {Vector2i} drawOrigin Upper Right corner the Tile to be drawn
+ * @param {number} drawTileSize Size of tile to be drawn
+ */
+Tiles.drawTile = function (
   context,
   tilesImage,
   imageOrigin,

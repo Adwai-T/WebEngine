@@ -1,3 +1,5 @@
+//Some of the function names have been changed. All the code might not work
+
 import {
   STAGE_1
 } from "./Maps/Map_1.js";
