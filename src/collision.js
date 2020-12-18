@@ -183,8 +183,6 @@ export let parseCollisionRectangles = function (
       colRectArr.push(rect);
     }
   }
-
-  console.log(colArr);
   return colRectArr;
 };
 
